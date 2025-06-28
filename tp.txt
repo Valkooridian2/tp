@@ -1,0 +1,76 @@
+--// Services & Player refs
+local Players    = game:GetService("Players")
+local player     = Players.LocalPlayer
+local char       = player.Character or player.CharacterAdded:Wait()
+local hrp        = char:WaitForChild("HumanoidRootPart")
+
+--// State
+local savedCFrame
+local teleportEnabled = false
+
+--// Core functions
+local function savePosition()
+    savedCFrame = hrp.CFrame
+    print("DEBUG: Position saved.")
+end
+
+local function teleportBack()
+    if savedCFrame then
+        player.Character:PivotTo(savedCFrame)
+        print("DEBUG: Teleported back.")
+    end
+end
+
+--// Build simple UI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PositionSaverGui"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 200, 0, 120)
+frame.Position = UDim2.new(0, 20, 0, 20)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 25)
+title.BackgroundTransparency = 1
+title.Text = "Position Saver"
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 18
+title.TextColor3 = Color3.new(1,1,1)
+
+local saveBtn = Instance.new("TextButton", frame)
+saveBtn.Size = UDim2.new(1, -20, 0, 30)
+saveBtn.Position = UDim2.new(0, 10, 0, 35)
+saveBtn.Text = "Save Position"
+saveBtn.Font = Enum.Font.SourceSans
+saveBtn.TextSize = 16
+saveBtn.TextColor3 = Color3.new(1,1,1)
+saveBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+saveBtn.BorderSizePixel = 0
+saveBtn.MouseButton1Click:Connect(savePosition)
+
+local toggleBtn = Instance.new("TextButton", frame)
+toggleBtn.Size = UDim2.new(1, -20, 0, 30)
+toggleBtn.Position = UDim2.new(0, 10, 0, 75)
+toggleBtn.Text = "Auto-Teleport: OFF"
+toggleBtn.Font = Enum.Font.SourceSans
+toggleBtn.TextSize = 16
+toggleBtn.TextColor3 = Color3.new(1,1,1)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+toggleBtn.BorderSizePixel = 0
+
+toggleBtn.MouseButton1Click:Connect(function()
+    teleportEnabled = not teleportEnabled
+    toggleBtn.Text = "Auto-Teleport: " .. (teleportEnabled and "ON" or "OFF")
+    print("DEBUG: Auto-Teleport is now", teleportEnabled and "ON" or "OFF")
+    if teleportEnabled then
+        spawn(function()
+            while teleportEnabled do
+                teleportBack()
+                wait(5)
+            end
+        end)
+    end
+end)
